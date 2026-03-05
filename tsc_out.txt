@@ -1,0 +1,4 @@
+src/pages/LandingPage.tsx(5,10): error TS6133: 'CountUpNumber' is declared but its value is never read.
+src/pages/ProfilePage.tsx(3,16): error TS6133: 'Mail' is declared but its value is never read.
+src/pages/ProfilePage.tsx(3,42): error TS6133: 'Shield' is declared but its value is never read.
+\n

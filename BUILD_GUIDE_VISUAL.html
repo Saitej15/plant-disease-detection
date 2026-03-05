@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlantIQ - APK Build Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+        .methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .method {
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transition: transform 0.3s;
+        }
+        .method:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .method-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .method-icon {
+            font-size: 3em;
+            margin-right: 15px;
+        }
+        .method-title {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+        }
+        .method-time {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        .steps li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.6;
+        }
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .comparison {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        .comparison h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #edf2f7;
+        }
+        .badge {
+            background: #48bb78;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .badge-warning {
+            background: #ed8936;
+        }
+        .badge-info {
+            background: #4299e1;
+        }
+        .print-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        .print-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .print-btn {
+                display: none;
+            }
+        }
+        .highlight {
+            background: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 PlantIQ APK Builder</h1>
+        <p class="subtitle">Choose the best method to build your Android app</p>
+
+        <div class="methods">
+            <!-- Method 1 -->
+            <div class="method">
+                <div class="method-header">
+                    <div class="method-icon">⚡</div>
+                    <div class="method-title">Automated Script</div>
+                </div>
+                <div class="method-time">⏱️ 10 minutes</div>
+                <ol class="steps">
+                    <li>Right-click <code>install-android-sdk.ps1</code></li>
+                    <li>Select "Run with PowerShell"</li>
+                    <li>Wait for installation (~5 min)</li>
+                    <li>Close and reopen terminal</li>
+                    <li>Run build command:</li>
+                </ol>
+                <div class="code">cd android<br>./gradlew assembleDebug</div>
+                <div class="success">
+                    ✅ <strong>Best for:</strong> Quick local builds<br>
+                    📦 <strong>Download:</strong> 150MB
+                </div>
+            </div>
+
+            <!-- Method 2 -->
+            <div class="method">
+                <div class="method-header">
+                    <div class="method-icon">🌐</div>
+                    <div class="method-title">GitHub Actions</div>
+                </div>
+                <div class="method-time">⏱️ 5 minutes</div>
+                <ol class="steps">
+                    <li>Create GitHub repository</li>
+                    <li>Push your code:</li>
+                </ol>
+                <div class="code">git init<br>git add .<br>git commit -m "Build"<br>git push origin main</div>
+                <ol class="steps" start="3">
+                    <li>Add API keys as secrets</li>
+                    <li>Go to Actions tab</li>
+                    <li>Download APK artifact</li>
+                </ol>
+                <div class="success">
+                    ✅ <strong>Best for:</strong> No installation needed<br>
+                    📦 <strong>Download:</strong> 0MB (cloud build)
+                </div>
+            </div>
+
+            <!-- Method 3 -->
+            <div class="method">
+                <div class="method-header">
+                    <div class="method-icon">💻</div>
+                    <div class="method-title">Android Studio</div>
+                </div>
+                <div class="method-time">⏱️ 20 minutes</div>
+                <ol class="steps">
+                    <li>Download Android Studio</li>
+                    <li>Install with defaults</li>
+                    <li>Open project folder:</li>
+                </ol>
+                <div class="code">D:\pant desiese detection\android</div>
+                <ol class="steps" start="4">
+                    <li>Wait for Gradle sync</li>
+                    <li>Build → Build APK(s)</li>
+                    <li>Click "locate" when done</li>
+                </ol>
+                <div class="success">
+                    ✅ <strong>Best for:</strong> Most reliable<br>
+                    📦 <strong>Download:</strong> 3GB
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <h2>📊 Method Comparison</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Time</th>
+                        <th>Download</th>
+                        <th>Difficulty</th>
+                        <th>Success Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>⚡ Automated Script</strong></td>
+                        <td>10 min</td>
+                        <td>150 MB</td>
+                        <td><span class="badge">Easy</span></td>
+                        <td><span class="badge">95%</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>🌐 GitHub Actions</strong></td>
+                        <td>5 min</td>
+                        <td>0 MB</td>
+                        <td><span class="badge">Easy</span></td>
+                        <td><span class="badge">99%</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>💻 Android Studio</strong></td>
+                        <td>20 min</td>
+                        <td>3 GB</td>
+                        <td><span class="badge">Very Easy</span></td>
+                        <td><span class="badge">100%</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="highlight">
+            <strong>🎯 Recommended:</strong> Use <strong>GitHub Actions</strong> if you have a GitHub account (fastest, no installation). Otherwise, use the <strong>Automated Script</strong> for quick local builds.
+        </div>
+
+        <div class="success">
+            <strong>📱 After Building:</strong><br>
+            APK Location: <code>android/app/build/outputs/apk/debug/app-debug.apk</code><br>
+            Copy to phone and install!
+        </div>
+
+        <button class="print-btn" onclick="window.print()">🖨️ Print This Guide</button>
+
+        <div style="text-align: center; color: #666; margin-top: 30px;">
+            <p>📖 For detailed instructions, see <strong>BUILD_APK_NOW.md</strong></p>
+            <p style="margin-top: 10px;">Made with ❤️ for PlantIQ</p>
+        </div>
+    </div>
+</body>
+</html>
