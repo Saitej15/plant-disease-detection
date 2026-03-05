@@ -7,6 +7,9 @@ const PLANT_ID_API_KEY = import.meta.env.VITE_PLANT_ID_API_KEY as string;
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
+// Use gemini-pro for text and vision (most stable and widely available)
+const MODEL_NAME = 'gemini-pro';
+
 const LANGUAGE_INSTRUCTIONS = {
     en: 'Respond in English.',
     hi: 'सभी जानकारी हिंदी में प्रदान करें। Respond entirely in Hindi language.',
@@ -91,7 +94,7 @@ export async function analyzeWithGemini(imageFile: File, language: Language = 'e
         console.log('[AI] Language:', language);
         // Use gemini-1.5-flash for image analysis
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-1.5-flash'
+            model: MODEL_NAME
         });
         const base64 = await fileToBase64(imageFile);
 
@@ -177,7 +180,7 @@ export async function analyzeWithPlantId(imageFile: File): Promise<Partial<Plant
 
 async function generateDetailedTreatment(plantName: string, diseaseName: string | undefined, language: Language = 'en'): Promise<Partial<PlantAnalysis>> {
     // Use gemini-1.5-flash for text generation
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
     const languageInstruction = language === 'en' 
         ? 'Respond in English.' 
