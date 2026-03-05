@@ -7,8 +7,9 @@ const PLANT_ID_API_KEY = import.meta.env.VITE_PLANT_ID_API_KEY as string;
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-// Use gemini-pro for text and vision (most stable and widely available)
-const MODEL_NAME = 'gemini-pro';
+// Use models that work with the current API
+const VISION_MODEL = 'gemini-1.5-flash-8b'; // Lightweight vision model
+const TEXT_MODEL = 'gemini-1.5-flash-8b'; // Same model for consistency
 
 const LANGUAGE_INSTRUCTIONS = {
     en: 'Respond in English.',
@@ -92,9 +93,9 @@ export async function analyzeWithGemini(imageFile: File, language: Language = 'e
     try {
         console.log('[AI] Starting Gemini analysis with plant-specific treatment prompts...');
         console.log('[AI] Language:', language);
-        // Use gemini-1.5-flash for image analysis
+        // Use gemini-1.5-flash-8b for image analysis
         const model = genAI.getGenerativeModel({ 
-            model: MODEL_NAME
+            model: VISION_MODEL
         });
         const base64 = await fileToBase64(imageFile);
 
@@ -179,8 +180,8 @@ export async function analyzeWithPlantId(imageFile: File): Promise<Partial<Plant
 }
 
 async function generateDetailedTreatment(plantName: string, diseaseName: string | undefined, language: Language = 'en'): Promise<Partial<PlantAnalysis>> {
-    // Use gemini-1.5-flash for text generation
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    // Use gemini-1.5-flash-8b for text generation
+    const model = genAI.getGenerativeModel({ model: TEXT_MODEL });
 
     const languageInstruction = language === 'en' 
         ? 'Respond in English.' 
@@ -259,75 +260,107 @@ IMPORTANT: Provide at least 3-4 natural remedies and 2-3 chemical treatments, al
 }
 
 export async function analyzePlant(imageFile: File, language: Language = 'en'): Promise<PlantAnalysis> {
-    console.log('[AI]: Starting precision analysis with Agentic RAG system...');
+    console.log('[AI]: Starting multi-path analysis with RAG + Gemini + Plant.id...');
 
-    try {
-        // Use the new agentic AI system with RAG
-        const { diagnoseWithAgent } = await import('./agenticAI');
-        const result = await diagnoseWithAgent(imageFile, language);
-        console.log('[AI]: Agentic diagnosis successful');
-        return result;
-    } catch (agentErr) {
-        console.warn('[AI]: Agentic system failed, trying Gemini...', agentErr);
+    // Try all three methods in parallel for best results
+    const results = await Promise.allSettled([
+        // Path 1: Agentic RAG system (fast, reliable, offline-capable)
+        (async () => {
+            const { diagnoseWithAgent } = await import('./agenticAI');
+            return await diagnoseWithAgent(imageFile, language);
+        })(),
+        
+        // Path 2: Gemini AI (detailed, context-aware)
+        analyzeWithGemini(imageFile, language),
+        
+        // Path 3: Plant.id (specialized plant identification)
+        analyzeWithPlantId(imageFile)
+    ]);
 
-        try {
-            // Fallback: Try Gemini
-            const geminiResult = await analyzeWithGemini(imageFile, language);
-            console.log('[AI]: Gemini analysis successful');
-            return geminiResult;
-        } catch (geminiErr) {
-            console.warn('[AI]: Gemini failed, attempting Plant.id fallback...', geminiErr);
+    // Check which methods succeeded
+    const ragResult = results[0].status === 'fulfilled' ? results[0].value : null;
+    const geminiResult = results[1].status === 'fulfilled' ? results[1].value : null;
+    const plantIdResult = results[2].status === 'fulfilled' ? results[2].value : null;
 
-            // Secondary: Plant.id fallback
-            const plantIdResult = await analyzeWithPlantId(imageFile);
+    console.log('[AI] Results:', {
+        rag: ragResult ? 'SUCCESS' : 'FAILED',
+        gemini: geminiResult ? 'SUCCESS' : 'FAILED',
+        plantId: plantIdResult ? 'SUCCESS' : 'FAILED'
+    });
 
-            if (plantIdResult && plantIdResult.plant_name) {
-                console.log('[AI]: Plant.id fallback successful, generating unique treatment for:', plantIdResult.plant_name);
-
-                const detailedInfo = await generateDetailedTreatment(
-                    plantIdResult.plant_name,
-                    plantIdResult.disease_name || undefined,
-                    language
-                );
-
-                // Create base with defaults
-                return {
-                    // UI Core defaults
-                    plant_description: 'Generating botanical description...',
-                    expert_summary: 'Processing diagnostic data...',
-                    immediate_actions: ['Monitor environmental conditions'],
-                    natural_remedies: [],
-                    chemical_treatments: [],
-                    prevention_tips: ['Maintain regular watering schedule'],
-                    growth_description: 'Standard growth pattern.',
-                    growth_rate: 'normal',
-                    growth_rate_reason: 'Generic growth habit.',
-                    sunlight_hours: 6,
-                    sunlight_intensity: 'medium',
-                    watering_frequency_days: 3,
-                    watering_amount_ml: 500,
-                    soil_ph_min: 6.0,
-                    soil_ph_max: 7.0,
-                    fertilizer_npk: '10-10-10',
-                    fertilizer_type: 'General Purpose',
-                    fertilizer_frequency_weeks: 4,
-                    pruning_tips: 'General maintenance pruning.',
-                    pruning_frequency: 'As needed',
-                    nutrient_deficiencies: [{ nutrient: 'General', severity: 'none' }],
-                    health_score: 80,
-                    confidence_percent: 75,
-                    severity: 'none',
-
-                    // Overwrite with Plant.id identification data
-                    ...plantIdResult,
-
-                    // Overwrite with dynamic Gemini text details
-                    ...detailedInfo,
-                } as PlantAnalysis;
-            }
-
-            console.error('[AI]: All analysis paths failed');
-            throw new Error('Comprehensive analysis failed. Please verify your internet connection and try again.');
-        }
+    // Priority 1: Use Gemini if available (most detailed)
+    if (geminiResult) {
+        console.log('[AI]: Using Gemini analysis (highest quality)');
+        return geminiResult;
     }
+
+    // Priority 2: Use RAG if available (reliable, curated data)
+    if (ragResult && ragResult.confidence_percent > 60) {
+        console.log('[AI]: Using RAG analysis (knowledge base match)');
+        return ragResult;
+    }
+
+    // Priority 3: Combine Plant.id with RAG for enhanced results
+    if (plantIdResult && plantIdResult.plant_name && ragResult) {
+        console.log('[AI]: Combining Plant.id identification with RAG knowledge');
+        // Merge Plant.id identification with RAG treatment data
+        return {
+            ...ragResult,
+            plant_name: plantIdResult.plant_name,
+            scientific_name: plantIdResult.scientific_name || ragResult.scientific_name,
+            confidence_percent: plantIdResult.confidence_percent || ragResult.confidence_percent,
+            disease_detected: plantIdResult.disease_detected || ragResult.disease_detected,
+            disease_name: plantIdResult.disease_name || ragResult.disease_name,
+            health_score: plantIdResult.health_score || ragResult.health_score
+        };
+    }
+
+    // Priority 4: Use RAG even with low confidence
+    if (ragResult) {
+        console.log('[AI]: Using RAG analysis (fallback)');
+        return ragResult;
+    }
+
+    // Priority 5: Use Plant.id with generated treatment
+    if (plantIdResult && plantIdResult.plant_name) {
+        console.log('[AI]: Using Plant.id with generated treatment');
+        const detailedInfo = await generateDetailedTreatment(
+            plantIdResult.plant_name,
+            plantIdResult.disease_name || undefined,
+            language
+        );
+
+        return {
+            plant_description: 'Botanical analysis in progress...',
+            expert_summary: 'Diagnostic assessment complete.',
+            immediate_actions: ['Monitor plant health closely'],
+            natural_remedies: [],
+            chemical_treatments: [],
+            prevention_tips: ['Maintain optimal growing conditions'],
+            growth_description: 'Standard growth pattern.',
+            growth_rate: 'normal',
+            growth_rate_reason: 'Typical development observed.',
+            sunlight_hours: 6,
+            sunlight_intensity: 'medium',
+            watering_frequency_days: 3,
+            watering_amount_ml: 500,
+            soil_ph_min: 6.0,
+            soil_ph_max: 7.0,
+            fertilizer_npk: '10-10-10',
+            fertilizer_type: 'General Purpose',
+            fertilizer_frequency_weeks: 4,
+            pruning_tips: 'Regular maintenance recommended.',
+            pruning_frequency: 'As needed',
+            nutrient_deficiencies: [{ nutrient: 'General', severity: 'none', symptoms: 'None observed' }],
+            health_score: 80,
+            confidence_percent: 75,
+            severity: 'none',
+            ...plantIdResult,
+            ...detailedInfo,
+        } as PlantAnalysis;
+    }
+
+    // Last resort: Error
+    console.error('[AI]: All analysis methods failed');
+    throw new Error('Unable to analyze plant. Please check your internet connection and try again.');
 }
