@@ -89,9 +89,9 @@ export async function analyzeWithGemini(imageFile: File, language: Language = 'e
     try {
         console.log('[AI] Starting Gemini analysis with plant-specific treatment prompts...');
         console.log('[AI] Language:', language);
-        // Use gemini-flash-latest for image analysis (alias for latest stable Flash model)
+        // Use gemini-1.5-flash for image analysis
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-flash-latest'
+            model: 'gemini-1.5-flash'
         });
         const base64 = await fileToBase64(imageFile);
 
@@ -176,8 +176,8 @@ export async function analyzeWithPlantId(imageFile: File): Promise<Partial<Plant
 }
 
 async function generateDetailedTreatment(plantName: string, diseaseName: string | undefined, language: Language = 'en'): Promise<Partial<PlantAnalysis>> {
-    // Use gemini-flash-latest for text generation
-    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+    // Use gemini-1.5-flash for text generation
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const languageInstruction = language === 'en' 
         ? 'Respond in English.' 
